@@ -40,6 +40,7 @@ public class BasicSideBarUI extends SideBarUI {
     private Map<String, Slot> cMap;
     private ComponentSizer sizer;
     private JPanel empty;
+    private String curName;
 
     @Override
     public void installUI(JComponent arg0) {
@@ -195,6 +196,7 @@ public class BasicSideBarUI extends SideBarUI {
             slot.toggleButton.setSelected(true);
             return;
         }
+        this.curName = name;
         cardLayout.show(cardPanel, name);
         ignore = true;
         getSlots().values()
@@ -207,6 +209,9 @@ public class BasicSideBarUI extends SideBarUI {
         } else {
             splitPane.setDividerLocation(splitPane.getHeight() - (computeComponentHeight(slot) + buttonHeight(50) + splitPane.getDividerSize()));
         }
+        if (slot.tool instanceof SlotCallback) {
+            ((SlotCallback) slot.tool).onShow();
+        }
         copySize(slot.tool);
     }
 
@@ -215,6 +220,12 @@ public class BasicSideBarUI extends SideBarUI {
         if (ignore) {
             return;
         }
+        getSlots().values().stream().filter((e) -> e.name.equals(curName)).findFirst().ifPresent((e) -> {
+            if (e.tool instanceof SlotCallback) {
+                ((SlotCallback) e.tool).onHide();
+            }
+        });
+        this.curName = "";
         cardLayout.show(cardPanel, "");
         if (sideBar.getOrientation() == SideBar.HORIZONTAL) {
             splitPane.setDividerLocation(buttonWidth(50) + splitPane.getDividerSize());
