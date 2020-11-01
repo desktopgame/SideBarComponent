@@ -11,6 +11,7 @@ package jp.desktopgame.sbc;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Box;
@@ -18,6 +19,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -37,6 +39,7 @@ public class BasicSideBarUI extends SideBarUI {
     private Component viewComp;
     private Map<String, Slot> cMap;
     private ComponentSizer sizer;
+    private JPanel empty;
 
     @Override
     public void installUI(JComponent arg0) {
@@ -67,8 +70,14 @@ public class BasicSideBarUI extends SideBarUI {
             toolPanel.add(buttonBox, BorderLayout.SOUTH);
             toolPanel.add(cardPanel, BorderLayout.CENTER);
         }
+        this.empty = new JPanel();
+        empty.setMinimumSize(new Dimension(0, 0));
+        empty.setPreferredSize(new Dimension(5, 5));
+        empty.setMaximumSize(new Dimension(5, 5));
+        empty.setSize(new Dimension(5, 5));
         viewPanel.setLayout(new BorderLayout());
-        cardPanel.add(new JPanel(), "");
+        cardPanel.add(empty, "");
+        copySize(empty);
         minify();
     }
 
@@ -169,11 +178,14 @@ public class BasicSideBarUI extends SideBarUI {
     @Override
     public void minify() {
         cardLayout.show(cardPanel, "");
-        if (sideBar.getOrientation() == SideBar.HORIZONTAL) {
-            splitPane.setDividerLocation(buttonWidth(50) + splitPane.getDividerSize());
-        } else {
-            splitPane.setDividerLocation(splitPane.getHeight() - (buttonHeight(50) + splitPane.getDividerSize()));
-        }
+        cardPanel.revalidate();
+        SwingUtilities.invokeLater(() -> {
+            if (sideBar.getOrientation() == SideBar.HORIZONTAL) {
+                splitPane.setDividerLocation(buttonWidth(50) + splitPane.getDividerSize());
+            } else {
+                splitPane.setDividerLocation(splitPane.getHeight() - (buttonHeight(50) + splitPane.getDividerSize()));
+            }
+        });
     }
 
     @Override
@@ -195,6 +207,7 @@ public class BasicSideBarUI extends SideBarUI {
         } else {
             splitPane.setDividerLocation(splitPane.getHeight() - (computeComponentHeight(slot) + buttonHeight(50) + splitPane.getDividerSize()));
         }
+        copySize(slot.tool);
     }
 
     @Override
@@ -208,6 +221,14 @@ public class BasicSideBarUI extends SideBarUI {
         } else {
             splitPane.setDividerLocation(splitPane.getHeight() - (buttonHeight(50) + splitPane.getDividerSize()));
         }
+        copySize(empty);
+    }
+
+    private void copySize(Component c) {
+        cardPanel.setMinimumSize(new Dimension(c.getMinimumSize()));
+        cardPanel.setPreferredSize(new Dimension(c.getPreferredSize()));
+        cardPanel.setMaximumSize(new Dimension(c.getMaximumSize()));
+        cardPanel.setSize(empty.getSize());
     }
 
     private int computeComponentWidth(Slot s) {
